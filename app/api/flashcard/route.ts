@@ -27,12 +27,16 @@ export async function POST(request: Request) {
         }
 
         // ตั้งค่า Google Auth
-        const client = new google.auth.JWT(
-            client_email,
-            undefined,
-            private_key.replace(/\\n/g, '\n'), // กรณี PRIVATE_KEY มี \n ต้องแปลงก่อนให้มันขึ้นบรรทัดใหม่จริง
-            ["https://www.googleapis.com/auth/spreadsheets"]
-        );
+        if (!client_email || !private_key) {
+          throw new Error("Missing CLIENT_EMAIL or PRIVATE_KEY in environment variables");
+        }
+
+        const client = new google.auth.JWT({
+          email: client_email,
+          key: private_key!.replace(/\\n/g, "\n"),
+          scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+        });
+
         await client.authorize();
 
         // เชื่อมกับ Google Sheets และอ่านข้อมูล
